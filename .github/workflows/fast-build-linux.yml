@@ -1,0 +1,78 @@
+name: Fast Build Linux
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  fast_build_linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: 'pip'
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ${{ runner.os }}-ccache-fast-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-fast-
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3-dev ccache python3-pip zip python3-distutils
+          python3 -m pip install --upgrade pip
+          pip3 install -r requirements.txt
+          echo "__version__ = '0.0.0-fast'" > _version.py
+
+      - name: Setup ccache
+        run: |
+          echo "CC=ccache gcc" >> $GITHUB_ENV
+          echo "CXX=ccache g++" >> $GITHUB_ENV
+          ccache --set-config=max_size=500M
+
+      - name: Fast Build (no onefile, no anti-bloat)
+        run: |
+          nuitka \
+            --assume-yes-for-downloads \
+            --standalone \
+            --jobs=6 \
+            --enable-plugin=pyside6 \
+            --include-module=seleniumwire \
+            --include-module=blinker._saferef \
+            --include-package-data=seleniumwire \
+            --include-package=certifi \
+            --nofollow-import-to="*.tests" \
+            --nofollow-import-to="pydoc" \
+            --nofollow-import-to="test" \
+            --output-dir=dist/fastbuild \
+            app.py
+
+      - name: List fast build output
+        run: |
+          echo "Contents of dist/fastbuild:"
+          ls -la dist/fastbuild || true
+          find dist/fastbuild -maxdepth 3 -type f -executable | head -20
+
+      - name: Upload fast build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fastbuild-linux
+          path: dist/fastbuild
+
