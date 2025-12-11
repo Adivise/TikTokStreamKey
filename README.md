@@ -1,6 +1,6 @@
 # TikTok StreamKey Generator for OBS Studio
 
-![Version: 2.0.7](https://img.shields.io/badge/version-2.0.7-blue.svg)   ![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)
+![Version: 2.0.7](https://img.shields.io/badge/version-3.0.0-blue.svg)   ![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)
 
 > Effortlessly grab a TikTok Live stream key via your Streamlabs login, ready to use with OBS Studio — with or without 1k+ followers!
 
@@ -93,7 +93,7 @@ See [BUILD.md](BUILD.md) for full details. Quick start:
 
 If you want a preview of the app, here it is:
 
-![App Screenshot](streamkey.png)
+![App Screenshot](https://media.discordapp.net/attachments/1432797361574248480/1448530401558659072/image.png?ex=693b9890&is=693a4710&hm=b6c7ca669e8b712019571f3a939e9cbc2ff4545788b71cc0e2dbfa3bb0b7dda4&=&format=webp&quality=lossless)
 
 ---
 
