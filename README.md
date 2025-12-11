@@ -45,7 +45,7 @@ Get the latest release [here](../../releases/latest) and simply run it. **No Pyt
 ### Run from source (for development)
 1. Clone this repo:
     ```bash
-    git clone https://github.com/YOURNAME/TikTokStreamKey.git
+    git clone https://github.com/Adivise/TikTokStreamKey.git
     cd TikTokStreamKey
     ```
 2. [Optional but recommended] Create and activate a virtual environment:
@@ -59,7 +59,7 @@ Get the latest release [here](../../releases/latest) and simply run it. **No Pyt
     ```
 4. Run:
     ```bash
-    python main.py
+    python app.py
     ```
 ---
 
@@ -82,10 +82,10 @@ See [BUILD.md](BUILD.md) for full details. Quick start:
 
 - Activate virtualenv, install requirements, then run:
     ```bash
-    python -m nuitka --standalone --onefile --windows-icon-from-ico=streamkey.ico --enable-plugin=pyside6 --output-dir=dist main.py
+    python -m nuitka --standalone --onefile --windows-icon-from-ico=streamkey.ico --enable-plugin=pyside6 --output-dir=dist app.py
     ```
 - The built EXE will be in the `dist` folder.
-- Troubleshoot common build issues via [REQUIREMENTS_GUIDE.md](REQUIREMENTS_GUIDE.md) and [BUILD_TROUBLESHOOTING.md](BUILD_TROUBLESHOOTING.md).
+- Troubleshoot common build issues via [REQUIREMENTS_GUIDE.md](Guides/REQUIREMENTS_GUIDE.md) and [BUILD_TROUBLESHOOTING.md](Guides/BUILD_TROUBLESHOOTING.md).
 
 ---
 
@@ -116,9 +116,9 @@ For more, check the full FAQ below.
 If you find this tool helpful, please consider supporting development:
 
 - Original Author: **[loukious](https://github.com/loukious)** [Support Original](https://buymeacoffee.com/loukious)
--  Maintainer: **[Adivise](https://github.com/Adivise)** [Support Maintainer](https://buymeacoffee.com/suntury)
+- Maintainer: **[Adivise](https://github.com/Adivise)** [Support Maintainer](https://buymeacoffee.com/suntury)
 
 ---
 
 ## License
-This project is licensed under the **GNU General Public License v3.0**. See [LICENSE.txt](LICENSE.txt) for more details.
+This project is licensed under the **GNU General Public License v3.0**. See [LICENSE.txt](LICENSE) for more details.
