@@ -17,20 +17,32 @@ build.bat
 # Activate virtual environment
 .\venv\Scripts\activate
 
-# Build with Nuitka
-python -m nuitka --assume-yes-for-downloads --standalone --onefile --windows-icon-from-ico=streamkey.ico --windows-console-mode=disable --enable-plugin=pyside6 --include-module=seleniumwire --include-module=blinker._saferef --include-package-data=seleniumwire --include-package=certifi --nofollow-import-to="*.tests" --nofollow-import-to="pydoc" --nofollow-import-to="test" --windows-company-name="Suntury" --windows-product-name="TikTok StreamKey Generator" --windows-file-description="TikTok Stream Key Generator for OBS Studio" --copyright="Copyright © 2025" --output-dir=dist main.py
+# Build with Nuitka (optimized for speed and size)
+python -m nuitka --assume-yes-for-downloads --standalone --onefile --jobs=4 --windows-icon-from-ico=streamkey.ico --windows-console-mode=disable --enable-plugin=pyside6 --enable-plugin=anti-bloat --include-module=seleniumwire --include-module=blinker._saferef --include-package-data=seleniumwire --include-package=certifi --nofollow-import-to="*.tests" --nofollow-import-to="pydoc" --nofollow-import-to="test" --no-pyi-file --remove-output --windows-company-name="Suntury" --windows-product-name="TikTok StreamKey Generator" --windows-file-description="TikTok Stream Key Generator for OBS Studio" --copyright="Copyright © 2025" --output-dir=dist main.py
 ```
 
 ## Build Options Explained
 
 - `--standalone`: Creates a standalone executable with all dependencies
 - `--onefile`: Creates a single EXE file (easier to distribute)
+- `--jobs=4`: Uses 4 parallel jobs for faster compilation (adjust based on CPU cores)
 - `--windows-icon-from-ico=streamkey.ico`: Uses your icon file
 - `--windows-console-mode=disable`: Hides console window (GUI app)
 - `--enable-plugin=pyside6`: Enables PySide6 plugin for Qt
+- `--enable-plugin=anti-bloat`: Removes unused code to reduce file size
 - `--include-module=seleniumwire`: Includes seleniumwire module
 - `--include-package-data=seleniumwire`: Includes seleniumwire data files
+- `--no-pyi-file`: Skips .pyi type stub files (reduces size)
+- `--remove-output`: Removes build cache after completion (saves disk space)
 - `--output-dir=dist`: Outputs to dist folder
+
+## Performance Optimizations
+
+The build scripts are optimized for faster builds and smaller executables:
+- **Parallel compilation** (`--jobs=4`) speeds up builds by using multiple CPU cores
+- **Anti-bloat plugin** removes unused code, reducing executable size
+- **No .pyi files** skips type stubs that aren't needed at runtime
+- **Remove output** cleans up build cache automatically
 
 ## Output
 
@@ -51,9 +63,14 @@ After building, you'll find the EXE file in the `dist` folder:
 3. Ensure all required DLLs are included (Nuitka should handle this)
 
 ### Reducing EXE size:
-- Remove `--onefile` (creates a folder instead)
-- Use `--enable-plugin=anti-bloat` to remove unused code
-- Add `--no-pyi-file` to skip .pyi files
+- Already optimized! The build scripts include `--enable-plugin=anti-bloat` and `--no-pyi-file`
+- Remove `--onefile` (creates a folder instead) - but this makes distribution harder
+- Use `--lto=yes` for link-time optimization (slower build, smaller output)
+
+### Speeding up builds:
+- Already optimized! The build scripts include `--jobs=4` for parallel compilation
+- Increase `--jobs` value if you have more CPU cores (e.g., `--jobs=8` for 8-core CPU)
+- Use `ccache` on Linux for faster recompilation (already configured in GitHub Actions)
 
 ## Distribution
 

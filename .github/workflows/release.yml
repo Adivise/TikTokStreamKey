@@ -35,11 +35,20 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
+          cache: 'pip'
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install --cache-dir ~\AppData\Local\pip\Cache -r requirements.txt
           echo "__version__ = '${{ github.event.inputs.version }}'" > _version.py
 
       - name: Build Executable
@@ -48,7 +57,9 @@ jobs:
             --assume-yes-for-downloads `
             --standalone `
             --onefile `
+            --jobs=4 `
             --enable-plugin=pyside6 `
+            --enable-plugin=anti-bloat `
             --windows-icon-from-ico=streamkey.ico `
             --windows-console-mode=disable `
             --include-module=seleniumwire `
@@ -58,6 +69,8 @@ jobs:
             --nofollow-import-to="*.tests" `
             --nofollow-import-to="pydoc" `
             --nofollow-import-to="test" `
+            --no-pyi-file `
+            --remove-output `
             --windows-company-name="Suntury" `
             --windows-product-name="TikTok StreamKey | Generator" `
             --windows-file-description="TikTok Stream Key Generator for OBS Studio" `
@@ -85,6 +98,15 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
+          cache: 'pip'
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
@@ -98,7 +120,9 @@ jobs:
             --assume-yes-for-downloads \
             --standalone \
             --onefile \
+            --jobs=4 \
             --enable-plugin=pyside6 \
+            --enable-plugin=anti-bloat \
             --include-module=seleniumwire \
             --include-module=blinker._saferef \
             --include-package-data=seleniumwire \
@@ -106,12 +130,42 @@ jobs:
             --nofollow-import-to="*.tests" \
             --nofollow-import-to="pydoc" \
             --nofollow-import-to="test" \
+            --no-pyi-file \
+            --remove-output \
             --output-dir=dist \
             main.py
 
+      - name: List build output
+        run: |
+          echo "Contents of dist directory:"
+          ls -la dist/ || true
+          echo ""
+          echo "Searching for executables..."
+          find dist -type f -executable 2>/dev/null | head -10 || true
+          find dist -name "*.app" -type d 2>/dev/null | head -5 || true
+
       - name: Compress Executable
         run: |
-          zip -j TikTokStreamKeyGenerator-macos-${{ github.event.inputs.version }}.zip dist/main.app
+          # With --onefile, Nuitka creates main.bin or main (not .app bundle)
+          if [ -f "dist/main.bin" ]; then
+            echo "Found main.bin, creating zip..."
+            zip -j TikTokStreamKeyGenerator-macos-${{ github.event.inputs.version }}.zip dist/main.bin
+            chmod +x dist/main.bin
+          elif [ -f "dist/main" ]; then
+            echo "Found main executable, creating zip..."
+            zip -j TikTokStreamKeyGenerator-macos-${{ github.event.inputs.version }}.zip dist/main
+            chmod +x dist/main
+          elif [ -d "dist/main.app" ]; then
+            echo "Found app bundle, creating zip..."
+            cd dist
+            zip -r ../TikTokStreamKeyGenerator-macos-${{ github.event.inputs.version }}.zip main.app
+            cd ..
+          else
+            echo "Error: No executable found in dist directory!"
+            echo "Contents:"
+            ls -la dist/
+            exit 1
+          fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -125,6 +179,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: 'pip'
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ${{ runner.os }}-ccache-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -133,13 +209,21 @@ jobs:
           pip3 install -r requirements.txt
           echo "__version__ = '${{ github.event.inputs.version }}'" > _version.py
 
+      - name: Setup ccache
+        run: |
+          echo "CC=ccache gcc" >> $GITHUB_ENV
+          echo "CXX=ccache g++" >> $GITHUB_ENV
+          ccache --set-config=max_size=500M
+
       - name: Build Executable
         run: |
           nuitka \
             --assume-yes-for-downloads \
             --standalone \
             --onefile \
+            --jobs=4 \
             --enable-plugin=pyside6 \
+            --enable-plugin=anti-bloat \
             --include-module=seleniumwire \
             --include-module=blinker._saferef \
             --include-package-data=seleniumwire \
@@ -147,6 +231,8 @@ jobs:
             --nofollow-import-to="*.tests" \
             --nofollow-import-to="pydoc" \
             --nofollow-import-to="test" \
+            --no-pyi-file \
+            --remove-output \
             --output-dir=dist \
             main.py
 

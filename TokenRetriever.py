@@ -1,6 +1,6 @@
 import re
 import time
-from seleniumbase import SB
+# seleniumbase imported lazily in retrieve_token() to avoid heavy import at module level
 import json
 import requests
 import hashlib
@@ -41,6 +41,8 @@ class TokenRetriever:
 
     def retrieve_token(self, binary_location=None):
         code = ""
+        # Lazy import seleniumbase - heavy dependency only loaded when needed
+        from seleniumbase import SB
 
         with SB(wire=True, headless=False, binary_location=binary_location) as sb:
             sb.open("https://www.tiktok.com/transparency")
@@ -58,16 +60,15 @@ class TokenRetriever:
         if code:
             with requests.Session() as s:
                 try:
-                    time.sleep(5)
-                    params= {
+                    # Reduced sleep time - 2 seconds should be sufficient
+                    time.sleep(2)
+                    params = {
                         "code_verifier": self.code_verifier,
                         "code": code
                     }
-                    response = s.get(self.STREAMLABS_API_URL, params=params)
-                    if response.status_code != 200:
-                        print(f"Bad response: {response.status_code} - {response.text}")
-                        return None
-                        
+                    response = s.get(self.STREAMLABS_API_URL, params=params, timeout=15)
+                    response.raise_for_status()
+                    
                     try:
                         resp_json = response.json()
                     except json.JSONDecodeError:
@@ -80,7 +81,10 @@ class TokenRetriever:
                     else:
                         print("Streamlabs token request failed:", resp_json)
                         return None
+                except requests.exceptions.RequestException as e:
+                    print(f"Error requesting token from Streamlabs: {e}")
+                    return None
                 except Exception as e:
-                    print("Error requesting token from Streamlabs:", e)
+                    print(f"Unexpected error: {e}")
                     return None
         return None

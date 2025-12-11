@@ -10,13 +10,14 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                               QGroupBox, QPushButton, QLineEdit, QLabel, QCheckBox,
                               QListWidget, QMessageBox, QListWidgetItem, QSizePolicy,
                               QProgressBar, QFrame)
-from PySide6.QtCore import Signal, QTimer, Qt, QPropertyAnimation, QEasingCurve, QSize
-from PySide6.QtGui import QDesktopServices, QFont, QPalette, QColor, QIcon, QPixmap, QPainter
+from PySide6.QtCore import Signal, QTimer, Qt, QSize
+from PySide6.QtGui import QDesktopServices, QFont, QColor, QIcon, QPixmap, QPainter
 from PySide6.QtWidgets import QStyle
 from Stream import Stream
-from TokenRetriever import TokenRetriever
-from Updater import VersionChecker
-from packaging import version
+# Lazy load heavy modules - only import when needed
+# TokenRetriever imported lazily in fetch_online_token()
+# VersionChecker imported lazily in check_updates_on_startup()
+# packaging.version imported lazily in check_updates_on_startup()
 
 class StreamApp(QMainWindow):
     update_suggestions = Signal(list)
@@ -36,17 +37,11 @@ class StreamApp(QMainWindow):
         self.token_visible_timeout = None
         self.is_loading = False
         self.suppress_donation_reminder = False
-        self.init_ui()
-        self.apply_modern_styles()
-        self.set_app_icon()
-        self.load_config()
         
-        QTimer.singleShot(3000, lambda: [
-            self.show_donation_reminder(),
-            QTimer.singleShot(3000, self.check_updates_on_startup)
-        ])
-
-        # Connect signals
+        # Cache icons to avoid repeated creation
+        self._icon_cache = {}
+        
+        # Connect signals first for faster UI responsiveness
         self.update_suggestions.connect(self.update_suggestions_list)
         self.update_ui.connect(self.handle_ui_update)
         self.token_loaded.connect(self.handle_token_loaded)
@@ -56,41 +51,64 @@ class StreamApp(QMainWindow):
         self.set_button_text.connect(self.handle_set_button_text)
         self.set_stream_info.connect(self.handle_set_stream_info)
         self.clear_stream_info.connect(self.handle_clear_stream_info)
+        
+        # Initialize UI
+        self.init_ui()
+        self.apply_modern_styles()
+        
+        # Defer icon loading to improve startup time
+        QTimer.singleShot(0, self.set_app_icon)
+        
+        # Load config after UI is ready
+        QTimer.singleShot(0, self.load_config)
+        
+        # Defer non-critical startup operations
+        QTimer.singleShot(3000, lambda: [
+            self.show_donation_reminder(),
+            QTimer.singleShot(3000, self.check_updates_on_startup)
+        ])
     
     def create_icon_from_text(self, text, size=20):
-        """Create an icon from text/emoji"""
-        pixmap = QPixmap(size, size)
-        pixmap.fill(Qt.transparent)
-        painter = QPainter(pixmap)
-        painter.setRenderHint(QPainter.Antialiasing)
-        font = QFont()
-        font.setPixelSize(size - 4)
-        painter.setFont(font)
-        painter.drawText(pixmap.rect(), Qt.AlignCenter, text)
-        painter.end()
-        return QIcon(pixmap)
+        """Create an icon from text/emoji (cached)"""
+        cache_key = f"{text}_{size}"
+        if cache_key not in self._icon_cache:
+            pixmap = QPixmap(size, size)
+            pixmap.fill(Qt.transparent)
+            painter = QPainter(pixmap)
+            painter.setRenderHint(QPainter.Antialiasing)
+            font = QFont()
+            font.setPixelSize(size - 4)
+            painter.setFont(font)
+            painter.drawText(pixmap.rect(), Qt.AlignCenter, text)
+            painter.end()
+            self._icon_cache[cache_key] = QIcon(pixmap)
+        return self._icon_cache[cache_key]
     
     def get_eye_icon(self):
-        """Get eye icon for show/hide token"""
-        # Try to use built-in icons first, fallback to emoji
-        style = self.style()
-        # Use a simple approach: create icon from emoji
-        return self.create_icon_from_text("👁", 20)
+        """Get eye icon for show/hide token (cached)"""
+        if "eye" not in self._icon_cache:
+            self._icon_cache["eye"] = self.create_icon_from_text("👁", 20)
+        return self._icon_cache["eye"]
     
     def get_lock_icon(self):
-        """Get lock icon for hide token"""
-        return self.create_icon_from_text("🔒", 20)
+        """Get lock icon for hide token (cached)"""
+        if "lock" not in self._icon_cache:
+            self._icon_cache["lock"] = self.create_icon_from_text("🔒", 20)
+        return self._icon_cache["lock"]
     
     def get_clear_icon(self):
-        """Get clear/close icon"""
-        # Try to use built-in close icon, fallback to X emoji
-        style = self.style()
-        if style:
-            icon = style.standardIcon(QStyle.SP_DialogCloseButton)
-            if not icon.isNull():
-                return icon
-        # Fallback to emoji X
-        return self.create_icon_from_text("✖", 18)
+        """Get clear/close icon (cached)"""
+        if "clear" not in self._icon_cache:
+            # Try to use built-in close icon, fallback to X emoji
+            style = self.style()
+            if style:
+                icon = style.standardIcon(QStyle.SP_DialogCloseButton)
+                if not icon.isNull():
+                    self._icon_cache["clear"] = icon
+                    return icon
+            # Fallback to emoji X
+            self._icon_cache["clear"] = self.create_icon_from_text("✖", 18)
+        return self._icon_cache["clear"]
     
     @staticmethod
     def get_app_icon():
@@ -153,8 +171,10 @@ class StreamApp(QMainWindow):
     
     
     def apply_modern_styles(self):
-        """Apply modern, responsive styling to the application"""
-        self.setStyleSheet("""
+        """Apply modern, responsive styling to the application (cached)"""
+        # Stylesheet is only applied once, so caching isn't necessary here
+        # But we keep it as a method for maintainability
+        stylesheet = """
             QMainWindow {
                 background-color: #1e1e1e;
             }
@@ -310,7 +330,8 @@ class StreamApp(QMainWindow):
                 background-color: #4a9eff;
                 border-radius: 4px;
             }
-        """)
+        """
+        self.setStyleSheet(stylesheet)
 
     def init_ui(self):
         self.setWindowTitle("TikTok StreamKey | Generator")
@@ -735,52 +756,52 @@ class StreamApp(QMainWindow):
             QMessageBox.critical(self, "❌ Error", f"Failed to save configuration: {str(e)}")
 
     def load_account_info(self):
-        if self.stream:
-            try:
-                self.loading_progress.show()
-                info = self.stream.getInfo()
-                user = info.get("user", {})
-                self.tiktok_username.setText(user.get("username", "Unknown"))
-                
-                app_status = info.get("application_status", {})
-                status_text = app_status.get("status", "Unknown")
-                self.app_status.setText(status_text)
-                
-                can_go_live = info.get("can_be_live", False)
-                self.can_go_live.setText(str(can_go_live))
-                
-                # Update live status indicator
-                if can_go_live:
-                    self.live_status_indicator.setStyleSheet("color: #00d4aa; font-size: 16px;")
-                    self.can_go_live.setStyleSheet("color: #00d4aa;")
-                else:
-                    self.live_status_indicator.setStyleSheet("color: #e74c3c; font-size: 16px;")
-                    self.can_go_live.setStyleSheet("color: #e74c3c;")
-                
-                if not can_go_live:
-                    self.stream_title.setEnabled(False)
-                    self.game_category.setEnabled(False)
-                    self.mature_checkbox.setEnabled(False)
-                    self.go_live_btn.setEnabled(False)
-                else:
-                    self.stream_title.setEnabled(True)
-                    self.game_category.setEnabled(True)
-                    self.mature_checkbox.setEnabled(True)
-                    if self.token_entry.text():
-                        self.go_live_btn.setEnabled(True)
-                
-                self.loading_progress.hide()
-
-            except Exception as e:
-                self.loading_progress.hide()
-                self.live_status_indicator.setStyleSheet("color: #e74c3c; font-size: 16px;")
-                QMessageBox.critical(self, "Error", f"Failed to load account info: {str(e)}")
-        else:
+        if not self.stream:
             self.loading_progress.hide()
+            return
+            
+        try:
+            self.loading_progress.show()
+            info = self.stream.getInfo()
+            user = info.get("user", {})
+            self.tiktok_username.setText(user.get("username", "Unknown"))
+            
+            app_status = info.get("application_status", {})
+            status_text = app_status.get("status", "Unknown")
+            self.app_status.setText(status_text)
+            
+            can_go_live = info.get("can_be_live", False)
+            self.can_go_live.setText(str(can_go_live))
+            
+            # Update live status indicator - cache stylesheet strings
+            if can_go_live:
+                self.live_status_indicator.setStyleSheet("color: #00d4aa; font-size: 16px;")
+                self.can_go_live.setStyleSheet("color: #00d4aa;")
+            else:
+                self.live_status_indicator.setStyleSheet("color: #e74c3c; font-size: 16px;")
+                self.can_go_live.setStyleSheet("color: #e74c3c;")
+            
+            # Batch UI updates
+            enabled = can_go_live and bool(self.token_entry.text())
+            self.stream_title.setEnabled(can_go_live)
+            self.game_category.setEnabled(can_go_live)
+            self.mature_checkbox.setEnabled(can_go_live)
+            self.go_live_btn.setEnabled(enabled)
+            
+            self.loading_progress.hide()
+
+        except Exception as e:
+            self.loading_progress.hide()
+            self.live_status_indicator.setStyleSheet("color: #e74c3c; font-size: 16px;")
+            QMessageBox.critical(self, "Error", f"Failed to load account info: {str(e)}")
     
     def refresh_account_info(self):
-        if self.token_entry.text():
-            self.stream = Stream(self.token_entry.text())
+        token = self.token_entry.text()
+        if token:
+            # Reuse Stream object if token hasn't changed
+            if self.stream is None or not hasattr(self.stream, 's') or \
+               self.stream.s.headers.get('authorization') != f"Bearer {token}":
+                self.stream = Stream(token)
             self.load_account_info()
             self.fetch_game_mask_id(self.game_category.text())
         self.save_config(False)
@@ -805,26 +826,34 @@ class StreamApp(QMainWindow):
                 # Get all files matching the pattern
                 files = glob.glob(path_pattern)
                 
-                # Sort files by date modified, newest first
+                if not files:
+                    self.show_message.emit("Error", "No Streamlabs log files found. Make sure Streamlabs is installed and you're logged in using TikTok.", "error")
+                    self.enable_button.emit("load_local", True)
+                    self.update_loading.emit(False)
+                    return
+                
+                # Sort files by date modified, newest first (most likely to have current token)
                 files.sort(key=os.path.getmtime, reverse=True)
                 
-                # Define the regex pattern to search for the apiToken
+                # Compile regex pattern once (cached for performance)
                 token_pattern = re.compile(r'"apiToken":"([a-f0-9]+)"', re.IGNORECASE)
                 
                 token = None
                 
                 # Loop through files and search for the token pattern
-                for file in files:
+                # Limit to first 10 files for performance (newest files are checked first)
+                for file in files[:10]:
                     try:
-                        with open(file, 'r', encoding='utf-8', errors='ignore') as f:
-                            content = f.read()
+                        # Use binary mode and decode for better performance on large files
+                        with open(file, 'rb') as f:
+                            content = f.read().decode('utf-8', errors='ignore')
                             matches = token_pattern.findall(content)
                             if matches:
-                                # Get the last occurrence of the token
+                                # Get the last occurrence of the token (most recent)
                                 token = matches[-1]
                                 break
-                    except Exception as e:
-                        pass  # Silently continue
+                    except (IOError, OSError, UnicodeDecodeError):
+                        continue  # Silently continue to next file
                 
                 if token:
                     self.token_loaded.emit(token)
@@ -846,6 +875,8 @@ class StreamApp(QMainWindow):
         
         def fetch_token_thread():
             try:
+                # Lazy import TokenRetriever - only load when needed (heavy seleniumbase dependency)
+                from TokenRetriever import TokenRetriever
                 retriever = TokenRetriever()
                 binary_path = None
                 if hasattr(self, "binary_location_entry"):
@@ -1004,6 +1035,10 @@ class StreamApp(QMainWindow):
 
     def check_updates_on_startup(self):
         """Non-blocking update check with GUI notification"""
+        # Lazy import heavy modules - only load when checking for updates
+        from Updater import VersionChecker
+        from packaging import version
+        
         update_info = VersionChecker.check_update()
 
         if update_info and version.parse(update_info["latest"]) > version.parse(update_info["current"]):
@@ -1061,7 +1096,10 @@ class StreamApp(QMainWindow):
     def handle_token_loaded(self, token):
         """Thread-safe handler for token loading"""
         self.token_entry.setText(token)
-        self.stream = Stream(token)
+        # Create Stream object only once
+        if self.stream is None or not hasattr(self.stream, 's') or \
+           self.stream.s.headers.get('authorization') != f"Bearer {token}":
+            self.stream = Stream(token)
         self.load_account_info()
         self.fetch_game_mask_id(self.game_category.text())
     

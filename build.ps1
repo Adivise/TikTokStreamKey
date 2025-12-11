@@ -5,15 +5,17 @@ Write-Host ""
 # Activate virtual environment
 & .\venv\Scripts\Activate.ps1
 
-# Build with Nuitka
+# Build with Nuitka (optimized for speed and size)
 python -m nuitka `
     --assume-yes-for-downloads `
     --standalone `
     --onefile `
     --clang `
+    --jobs=4 `
     --windows-icon-from-ico=streamkey.ico `
     --windows-console-mode=disable `
     --enable-plugin=pyside6 `
+    --enable-plugin=anti-bloat `
     --include-module=seleniumwire `
     --include-module=blinker._saferef `
     --include-package-data=seleniumwire `
@@ -21,6 +23,8 @@ python -m nuitka `
     --nofollow-import-to="*.tests" `
     --nofollow-import-to="pydoc" `
     --nofollow-import-to="test" `
+    --no-pyi-file `
+    --remove-output `
     --windows-company-name="Suntury" `
     --windows-product-name="TikTok StreamKey | Generator" `
     --windows-file-description="TikTok Stream Key Generator for OBS Studio" `
