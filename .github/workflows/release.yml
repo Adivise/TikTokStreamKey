@@ -174,7 +174,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential clang lld python3-dev python3-pip zip python3-distutils libfuse2
-          wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage
+          wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool
           python3 -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
@@ -260,5 +260,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: "v${{ github.event.inputs.version }}"
-          body: ${{ github.event.inputs.changelog }}
+          body: ${{ github.event.inputs.version }}
           files: "artifacts/**/*"
