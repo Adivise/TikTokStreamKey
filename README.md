@@ -115,10 +115,8 @@ For more, check the full FAQ below.
 
 If you find this tool helpful, please consider supporting development:
 
-[![](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/loukious)
-
-Original author: **loukious**  
-Maintainer: **Suntury**
+Original Author: **[loukious](https://github.com/loukious)** [Support Original](https://buymeacoffee.com/loukious)
+Maintainer: **[Adivise](https://github.com/Adivise)** [Support Maintainer](https://buymeacoffee.com/suntury)
 
 ---
 
