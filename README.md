@@ -115,8 +115,8 @@ For more, check the full FAQ below.
 
 If you find this tool helpful, please consider supporting development:
 
-Original Author: **[loukious](https://github.com/loukious)** [Support Original](https://buymeacoffee.com/loukious)
-Maintainer: **[Adivise](https://github.com/Adivise)** [Support Maintainer](https://buymeacoffee.com/suntury)
+- Original Author: **[loukious](https://github.com/loukious)** [Support Original](https://buymeacoffee.com/loukious)
+-  Maintainer: **[Adivise](https://github.com/Adivise)** [Support Maintainer](https://buymeacoffee.com/suntury)
 
 ---
 
