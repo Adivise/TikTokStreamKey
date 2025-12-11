@@ -14,3 +14,60 @@ StreamLabsTikTokStreamKeyGeneratorCLI.py
 *.pem
 downloaded_files/*
 _version.py
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyd
+*.pdb
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+config.json
+
+# Nuitka/Build output
+dist/
+*.dist/
+*.build/
+build/
+*.exe
+*.dll
+*.so
+*.bin
+*.app
+*.log
+*.zip
+*.tar.gz
+
+# Packaging
+*.egg-info/
+.eggs/
+.eggs
+.nuitka-cache/
+*.whl
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Editors/IDEs
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# User/system config
+config.json
+_version.py
+
+# Crash logs and debug
+*crash-report.xml
+
+# macOS specific
+.DS_Store
+
+# Windows specific
+ehthumbs.db

@@ -1,58 +1,126 @@
-# TikTok Live Stream Key Generator for OBS Studio Using Streamlabs API
+# TikTok StreamKey Generator for OBS Studio
+
+![Version: 2.0.7](https://img.shields.io/badge/version-2.0.7-blue.svg)   ![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)
+
+> Effortlessly grab a TikTok Live stream key via your Streamlabs login, ready to use with OBS Studio — with or without 1k+ followers!
 
 ## Description
-This application is a simple tool that generates a TikTok Live Stream Key for OBS Studio using the Streamlabs API. Streamlabs TikTok LIVE access is required.
+This modern, cross-platform GUI tool lets you generate a TikTok Live Stream Key using the official Streamlabs API. It’s tailored for creators who have Streamlabs TikTok LIVE access and want an easy, all-in-one workflow with no command-line hassles.
 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/loukious)
+- **No 1k follower requirement on TikTok** — apply for access through Streamlabs and go live with any account that’s approved
+- **100% free software**; you can build, inspect, or modify the source under the GNU GPL v3
 
+---
 
 ## Features
-- Generate TikTok Live Stream Key using Streamlabs API
+- Secure stream key and RTMP URL retrieval for TikTok LIVE (via Streamlabs)
+- Easy Windows installer or one-file build
+- Sleek, dark modern GUI (PySide6 based)
+- Token loader: fetch from your PC (if logged into Streamlabs) or in-browser TikTok login
+- Account info checker & stream title/category setup
+- Game category search/suggestions
+- Stream key copy-to-clipboard for worry-free OBS setup
+- Save/load configuration (title/game/audience/token) in one click
+- "Go Live" and "End Live" button control
+- Optional mature content flag
+- Open-source & privacy-respecting
 
-## Requirements
-- Streamlabs TikTok LIVE access. You can request access [here](https://tiktok.com/falcon/live_g/live_access_pc_apply/result/index.html?id=GL6399433079641606942&lang=en-US)
+---
+
+## Prerequisites
+- **Streamlabs TikTok LIVE access** ([request here](https://tiktok.com/falcon/live_g/live_access_pc_apply/result/index.html?id=GL6399433079641606942&lang=en-US))
 - TikTok account
-- Streamlabs installed on your computer and you are logged in with your TikTok account in Streamlabs (optional)
+- Windows 10/11 (64-bit recommended)
+- [Optional] Streamlabs Desktop installed, logged in with your TikTok account *for easiest token retrieval*.
 
-## Download
-- Download the latest release from [here](../../releases/latest)
+> **You do NOT need 1,000 TikTok followers!** Streamlabs grants access based on their own approval process.
+
+---
+
+## Installation / Running
+
+### Download ready-to-use EXE
+Get the latest release [here](../../releases/latest) and simply run it. **No Python installation required.**
+
+### Run from source (for development)
+1. Clone this repo:
+    ```bash
+    git clone https://github.com/YOURNAME/TikTokStreamKey.git
+    cd TikTokStreamKey
+    ```
+2. [Optional but recommended] Create and activate a virtual environment:
+    ```powershell
+    python -m venv venv
+    .\venv\Scripts\activate
+    ```
+3. Install requirements:
+    ```bash
+    pip install -r requirements.txt
+    ```
+4. Run:
+    ```bash
+    python main.py
+    ```
+---
 
 ## Usage
 1. Run the application.
-2. click on the "Load token" button.
-3. 
-    1. If you have Streamlabs installed on your computer and you are logged in with your TikTok account in Streamlabs, the application will automatically load the token.
-    2. If you don't have Streamlabs installed on your computer or you are not logged in with your TikTok account in Streamlabs, you will need to login with your TikTok account in the browser that will open.
+2. Click **"Load from PC"** if you have Streamlabs Desktop and are logged in; otherwise, use **"Load from Web"** to log in via browser.
+3. Once a token loads (top left), confirm your TikTok username and account info populate below.
+4. Enter a stream title and search/select a game category. Optionally flag for mature content.
+5. Click **"Go Live"**.
+6. Copy the **Stream URL** and **Stream Key**, and use in OBS Studio (or other RTMP software).
+7. To end the stream, click **"End Live"**.
 
-4. Select stream title and category.
-5. Click on "Save Config" button to save the token, title and category.
-6. Click on the "Go Live" button.
+- All configs (token/title/category/audience) can be saved/reloaded.
+- Use the **Copy** buttons for fast paste into OBS.
 
+---
+
+## Build Guide (Windows)
+See [BUILD.md](BUILD.md) for full details. Quick start:
+
+- Activate virtualenv, install requirements, then run:
+    ```bash
+    python -m nuitka --standalone --onefile --windows-icon-from-ico=streamkey.ico --enable-plugin=pyside6 --output-dir=dist main.py
+    ```
+- The built EXE will be in the `dist` folder.
+- Troubleshoot common build issues via [REQUIREMENTS_GUIDE.md](REQUIREMENTS_GUIDE.md) and [BUILD_TROUBLESHOOTING.md](BUILD_TROUBLESHOOTING.md).
+
+---
 
 ## Screenshots
 
-![Screenshot](https://i.imgur.com/XLroKB2.png)
+If you want a preview of the app, here it is:
 
-## Output
+![App Screenshot](streamkey.png)
 
-The script will output:
-- **Base stream URL:** The URL needed to connect to the TikTok live stream.
-- **Stream key for OBS Studio (or any other streaming app):** Stream key that that you can use in OBS Studio to stream to TikTok.
-
-## Checkout my OBS-Multi-RTMP plugin fork!
-With [this](https://github.com/Loukious/obs-multi-rtmp) plugin, you can use your streamlabs token to stream directly to TikTok by saving it only once.
+---
 
 ## FAQ
-### I'm getting you `You can't open the application "***" because it may be damaged or incomplete` error on MacOS. What should I do?
-I don't own a Mac so I can't test the app on MacOS but you can try the following:
-1. Open Terminal.
-2. Run the following command: `xattr -dr com.apple.quarantine /path/to/the/StreamLabsTikTokStreamKeyGenerator.app` (replace `/path/to/the/StreamLabsTikTokStreamKeyGenerator.app` with the path to the app).
-3. Try to run the app again.
+- **Do I need Streamlabs Desktop?**  
+  *No, but it makes token loading automatic! Otherwise, log in through your browser inside the app.*
+- **Does it work on Mac or Linux?**  
+  *The EXE is Windows-only, but source runs cross-platform (token auto-load only works on supported platforms).* 
+- **Do I need 1k TikTok followers?**
+  *No, Streamlabs grants access on their own terms — see above link to request.*
+- **I get 'Maximum number of attempts reached' or Selenium errors?**
+  *See FAQ in this README for manual cookie loading.*
 
-### I'm getting a `Maximum number of attempts reached. Try again later.` error. What should I do?
-This error sometimes occurs when TikTok detects selenium. You can use this [extension](https://chromewebstore.google.com/detail/export-cookie-json-file-f/nmckokihipjgplolmcmjakknndddifde) to export your cookies and import them into the script.
-1. Start by installing the above extension in your browser.
-2. Log into TikTok in the browser (if not already logged in), then export the cookies using the extension (while being on TikTok's website). 
-3. After that, place the file in the same directory as the script and rename it to `cookies.json` then start the app.
-### Do I need to have 1k followers to get Streamlabs TikTok LIVE access?
-No, you can request access even if you have less than 1k followers.
+For more, check the full FAQ below.
+
+---
+
+## Donation & Credits
+
+If you find this tool helpful, please consider supporting development:
+
+[![](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/loukious)
+
+Original author: **loukious**  
+Maintainer: **Suntury**
+
+---
+
+## License
+This project is licensed under the **GNU General Public License v3.0**. See [LICENSE.txt](LICENSE.txt) for more details.

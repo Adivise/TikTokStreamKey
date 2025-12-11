@@ -4,7 +4,7 @@ import requests
 
 
 class VersionChecker:
-    REPO = "Loukious/StreamlabsTikTokStreamKeyGenerator"
+    REPO = "Adivise/TikTokStreamKey"
     
     @classmethod
     def check_update(cls):
