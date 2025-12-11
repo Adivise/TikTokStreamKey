@@ -77,11 +77,11 @@ jobs:
             --windows-file-version="${{ github.event.inputs.version }}" `
             --windows-product-version="${{ github.event.inputs.version }}" `
             --output-dir=dist `
-            main.py
+            app.py
 
       - name: Compress Executable
         run: |
-          ren "dist\main.exe" "TikTok StreamKey.exe"
+          ren "dist\app.exe" "TikTok StreamKey.exe"
           Compress-Archive -Path "dist/TikTok StreamKey.exe" -DestinationPath TikTokStreamKeyGenerator-windows-${{ github.event.inputs.version }}.zip
 
       - name: Upload artifacts
@@ -135,7 +135,7 @@ jobs:
             --no-pyi-file \
             --remove-output \
             --output-dir=dist \
-            main.py
+            app.py
 
       - name: List build output
         run: |
@@ -148,20 +148,20 @@ jobs:
 
       - name: Compress Executable
         run: |
-          # With --onefile, Nuitka creates main.bin or main (not .app bundle)
-          if [ -f "dist/main.bin" ]; then
-            echo "Found main.bin, renaming and creating zip..."
-            mv "dist/main.bin" "dist/TikTok StreamKey"
+          # With --onefile, Nuitka creates app.bin or app (not .app bundle)
+          if [ -f "dist/app.bin" ]; then
+            echo "Found app.bin, renaming and creating zip..."
+            mv "dist/app.bin" "dist/TikTok StreamKey"
             chmod +x "dist/TikTok StreamKey"
             zip -j "TikTokStreamKeyGenerator-macos-${{ github.event.inputs.version }}.zip" "dist/TikTok StreamKey"
-          elif [ -f "dist/main" ]; then
-            echo "Found main executable, renaming and creating zip..."
-            mv "dist/main" "dist/TikTok StreamKey"
+          elif [ -f "dist/app" ]; then
+            echo "Found app executable, renaming and creating zip..."
+            mv "dist/app" "dist/TikTok StreamKey"
             chmod +x "dist/TikTok StreamKey"
             zip -j "TikTokStreamKeyGenerator-macos-${{ github.event.inputs.version }}.zip" "dist/TikTok StreamKey"
-          elif [ -d "dist/main.app" ]; then
+          elif [ -d "dist/app.app" ]; then
             echo "Found app bundle, renaming and creating zip..."
-            mv "dist/main.app" "dist/TikTok StreamKey.app"
+            mv "dist/app.app" "dist/TikTok StreamKey.app"
             cd dist
             zip -r "../TikTokStreamKeyGenerator-macos-${{ github.event.inputs.version }}.zip" "TikTok StreamKey.app"
             cd ..
@@ -239,16 +239,16 @@ jobs:
             --no-pyi-file \
             --remove-output \
             --output-dir=dist \
-            main.py
+            app.py
 
       - name: Compress Executable
         run: |
-          if [ -f "dist/main.bin" ]; then
-            mv "dist/main.bin" "dist/TikTok StreamKey"
+          if [ -f "dist/app.bin" ]; then
+            mv "dist/app.bin" "dist/TikTok StreamKey"
             chmod +x "dist/TikTok StreamKey"
             zip -j "TikTokStreamKeyGenerator-linux-${{ github.event.inputs.version }}.zip" "dist/TikTok StreamKey"
-          elif [ -f "dist/main" ]; then
-            mv "dist/main" "dist/TikTok StreamKey"
+          elif [ -f "dist/app" ]; then
+            mv "dist/app" "dist/TikTok StreamKey"
             chmod +x "dist/TikTok StreamKey"
             zip -j "TikTokStreamKeyGenerator-linux-${{ github.event.inputs.version }}.zip" "dist/TikTok StreamKey"
           else

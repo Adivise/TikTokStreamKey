@@ -13,11 +13,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
 from PySide6.QtCore import Signal, QTimer, Qt, QSize
 from PySide6.QtGui import QDesktopServices, QFont, QColor, QIcon, QPixmap, QPainter
 from PySide6.QtWidgets import QStyle
-from Stream import Stream
-# Lazy load heavy modules - only import when needed
-# TokenRetriever imported lazily in fetch_online_token()
-# VersionChecker imported lazily in check_updates_on_startup()
-# packaging.version imported lazily in check_updates_on_startup()
+from stream_client import Stream
 
 class StreamApp(QMainWindow):
     update_suggestions = Signal(list)
@@ -876,7 +872,7 @@ class StreamApp(QMainWindow):
         def fetch_token_thread():
             try:
                 # Lazy import TokenRetriever - only load when needed (heavy seleniumbase dependency)
-                from TokenRetriever import TokenRetriever
+                from token_retriever import TokenRetriever
                 retriever = TokenRetriever()
                 binary_path = None
                 if hasattr(self, "binary_location_entry"):
@@ -1036,7 +1032,7 @@ class StreamApp(QMainWindow):
     def check_updates_on_startup(self):
         """Non-blocking update check with GUI notification"""
         # Lazy import heavy modules - only load when checking for updates
-        from Updater import VersionChecker
+        from version_checker import VersionChecker
         from packaging import version
         
         update_info = VersionChecker.check_update()
