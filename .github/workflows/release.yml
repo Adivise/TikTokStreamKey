@@ -80,7 +80,9 @@ jobs:
             main.py
 
       - name: Compress Executable
-        run: Compress-Archive -Path dist/main.exe -DestinationPath TikTokStreamKeyGenerator-windows-${{ github.event.inputs.version }}.zip
+        run: |
+          ren "dist\main.exe" "TikTok StreamKey.exe"
+          Compress-Archive -Path "dist/TikTok StreamKey.exe" -DestinationPath TikTokStreamKeyGenerator-windows-${{ github.event.inputs.version }}.zip
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -148,17 +150,20 @@ jobs:
         run: |
           # With --onefile, Nuitka creates main.bin or main (not .app bundle)
           if [ -f "dist/main.bin" ]; then
-            echo "Found main.bin, creating zip..."
-            zip -j TikTokStreamKeyGenerator-macos-${{ github.event.inputs.version }}.zip dist/main.bin
-            chmod +x dist/main.bin
+            echo "Found main.bin, renaming and creating zip..."
+            mv "dist/main.bin" "dist/TikTok StreamKey"
+            chmod +x "dist/TikTok StreamKey"
+            zip -j "TikTokStreamKeyGenerator-macos-${{ github.event.inputs.version }}.zip" "dist/TikTok StreamKey"
           elif [ -f "dist/main" ]; then
-            echo "Found main executable, creating zip..."
-            zip -j TikTokStreamKeyGenerator-macos-${{ github.event.inputs.version }}.zip dist/main
-            chmod +x dist/main
+            echo "Found main executable, renaming and creating zip..."
+            mv "dist/main" "dist/TikTok StreamKey"
+            chmod +x "dist/TikTok StreamKey"
+            zip -j "TikTokStreamKeyGenerator-macos-${{ github.event.inputs.version }}.zip" "dist/TikTok StreamKey"
           elif [ -d "dist/main.app" ]; then
-            echo "Found app bundle, creating zip..."
+            echo "Found app bundle, renaming and creating zip..."
+            mv "dist/main.app" "dist/TikTok StreamKey.app"
             cd dist
-            zip -r ../TikTokStreamKeyGenerator-macos-${{ github.event.inputs.version }}.zip main.app
+            zip -r "../TikTokStreamKeyGenerator-macos-${{ github.event.inputs.version }}.zip" "TikTok StreamKey.app"
             cd ..
           else
             echo "Error: No executable found in dist directory!"
@@ -204,7 +209,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ccache python3-pip zip python3-distutils
+          sudo apt-get install -y build-essential ccache python3-pip zip python3-distutils
           python3 -m pip install --upgrade pip
           pip3 install -r requirements.txt
           echo "__version__ = '${{ github.event.inputs.version }}'" > _version.py
@@ -238,7 +243,19 @@ jobs:
 
       - name: Compress Executable
         run: |
-          zip -j TikTokStreamKeyGenerator-linux-${{ github.event.inputs.version }}.zip dist/main.bin
+          if [ -f "dist/main.bin" ]; then
+            mv "dist/main.bin" "dist/TikTok StreamKey"
+            chmod +x "dist/TikTok StreamKey"
+            zip -j "TikTokStreamKeyGenerator-linux-${{ github.event.inputs.version }}.zip" "dist/TikTok StreamKey"
+          elif [ -f "dist/main" ]; then
+            mv "dist/main" "dist/TikTok StreamKey"
+            chmod +x "dist/TikTok StreamKey"
+            zip -j "TikTokStreamKeyGenerator-linux-${{ github.event.inputs.version }}.zip" "dist/TikTok StreamKey"
+          else
+            echo "Error: No executable found in dist directory!"
+            ls -la dist/
+            exit 1
+          fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
