@@ -202,49 +202,48 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential python3-dev ccache python3-pip zip python3-distutils
+          sudo apt-get install -y build-essential clang lld ccache python3-dev python3-pip zip python3-distutils
           python3 -m pip install --upgrade pip
-          pip3 install -r requirements.txt
+          if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
           echo "__version__ = '${{ github.event.inputs.version }}'" > _version.py
 
       - name: Setup ccache
         run: |
-          echo "CC=ccache gcc" >> $GITHUB_ENV
-          echo "CXX=ccache g++" >> $GITHUB_ENV
+          echo "CC=ccache clang" >> $GITHUB_ENV
+          echo "CXX=ccache clang++" >> $GITHUB_ENV
           ccache --set-config=max_size=500M
 
-      - name: Build Executable
+      - name: Build Executable (standalone folder, closer to legacy)
         run: |
           nuitka \
-            --assume-yes-for-downloads \
-            --standalone \
-            --onefile \
-            --jobs=4 \
-            --enable-plugin=pyside6 \
-            --enable-plugin=anti-bloat \
-            --include-module=seleniumwire \
-            --include-module=blinker._saferef \
-            --include-package-data=seleniumwire \
-            --include-package=certifi \
-            --nofollow-import-to="*.tests" \
-            --nofollow-import-to="pydoc" \
-            --nofollow-import-to="test" \
-            --no-pyi-file \
-            --remove-output \
-            --output-dir=dist \
-            app.py
+          --assume-yes-for-downloads \
+          --show-scons \
+          --clang \
+          --lto=yes \
+          --jobs=4 \
+          --static-libpython=no \
+          --standalone \
+          --enable-plugin=anti-bloat \
+          --enable-plugin=pyside6 \
+          --include-module=seleniumwire \
+          --include-module=blinker._saferef \
+          --include-package-data=seleniumwire \
+          --include-package=certifi \
+          --show-modules \
+          --show-anti-bloat-changes \
+          --follow-stdlib \
+          --follow-imports \
+          --prefer-source-code \
+          --output-dir=dist \
+          app.py
 
-      - name: Compress Executable
+      - name: Rename output folder
         run: |
-          if [ -f "dist/app.bin" ]; then
-            mv "dist/app.bin" "dist/TikTok StreamKey"
-            chmod +x "dist/TikTok StreamKey"
-          elif [ -f "dist/app" ]; then
-            mv "dist/app" "dist/TikTok StreamKey"
-            chmod +x "dist/TikTok StreamKey"
+          if [ -d "dist/app.dist" ]; then
+            mv "dist/app.dist" "dist/TikTok StreamKey.dist"
           else
-            echo "Error: No executable found in dist directory!"
-            ls -la dist/
+            echo "Error: dist/app.dist not found"
+            ls -la dist || true
             exit 1
           fi
 
@@ -252,7 +251,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux
-          path: dist/TikTok StreamKey
+          path: dist/TikTok StreamKey.dist
 
   release:
     runs-on: ubuntu-latest
