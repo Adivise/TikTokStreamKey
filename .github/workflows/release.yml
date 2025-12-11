@@ -112,11 +112,12 @@ jobs:
           pip install -r requirements.txt
           echo "__version__ = '${{ github.event.inputs.version }}'" > _version.py
 
-      - name: Build Executable (app bundle)
+      - name: Build Executable
         run: |
           nuitka \
             --assume-yes-for-downloads \
             --standalone \
+            --onefile \
             --jobs=4 \
             --enable-plugin=pyside6 \
             --enable-plugin=anti-bloat \
@@ -132,22 +133,20 @@ jobs:
             --output-dir=dist \
             app.py
 
-      - name: List build output
+      - name: Compress Executable
         run: |
-          echo "Contents of dist directory:"
-          ls -la dist/ || true
-          echo ""
-          echo "Searching for executables..."
-          find dist -type f -executable 2>/dev/null | head -10 || true
-          find dist -name "*.app" -type d 2>/dev/null | head -5 || true
-
-      - name: Package DMG
-        run: |
-          if [ -d "dist/app.app" ]; then
-            mv "dist/app.app" "dist/TikTok StreamKey.app"
-            hdiutil create -volname "TikTok StreamKey" -srcfolder "dist/TikTok StreamKey.app" -ov -format UDZO "TikTokStreamKey-macOS-${{ github.event.inputs.version }}.dmg"
+          # With --onefile, Nuitka creates app.bin or app (not .app bundle)
+          if [ -f "dist/app.bin" ]; then
+            echo "Found app.bin, renaming..."
+            mv "dist/app.bin" "dist/TikTokStreamKey-macOS-${{ github.event.inputs.version }}"
+            chmod +x "dist/TikTokStreamKey-macOS-${{ github.event.inputs.version }}"
+          elif [ -f "dist/app" ]; then
+            echo "Found app executable, renaming..."
+            mv "dist/app" "dist/TikTokStreamKey-macOS-${{ github.event.inputs.version }}"
+            chmod +x "dist/TikTokStreamKey-macOS-${{ github.event.inputs.version }}"
           else
-            echo "Error: app bundle not found"
+            echo "Error: No executable found in dist directory!"
+            echo "Contents:"
             ls -la dist/
             exit 1
           fi
@@ -157,7 +156,7 @@ jobs:
         with:
           name: macos
           path: |
-            TikTokStreamKey-macOS-${{ github.event.inputs.version }}.dmg
+            dist/TikTokStreamKey-macOS-${{ github.event.inputs.version }}
 
   build_linux:
     runs-on: ubuntu-22.04
@@ -174,13 +173,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential clang lld python3-dev python3-pip zip python3-distutils libfuse2
-          wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool
           python3 -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
           echo "__version__ = '${{ github.event.inputs.version }}'" > _version.py
 
-      - name: Build Executable (standalone folder, closer to legacy)
+      - name: Build Executable
         run: |
           nuitka \
           --assume-yes-for-downloads \
@@ -190,7 +187,6 @@ jobs:
           --jobs=4 \
           --static-libpython=no \
           --standalone \
-          --onefile \
           --enable-plugin=anti-bloat \
           --enable-plugin=pyside6 \
           --include-module=seleniumwire \
@@ -205,31 +201,10 @@ jobs:
           --output-dir=dist \
           app.py
 
-      - name: Build AppImage
+      - name: Rename Linux dist folder
         run: |
           if [ -d "dist/app.dist" ]; then
-            mkdir -p AppDir/usr/bin
-            cp -r dist/app.dist/* AppDir/usr/bin/
-            cp streamkey.png AppDir/. || true
-            cat > AppDir/AppRun <<'EOF'
-            #!/bin/sh
-            HERE="$(dirname "$(readlink -f "$0")")"
-            exec "$HERE/usr/bin/app" "$@"
-            EOF
-            chmod +x AppDir/AppRun
-            cat > AppDir/TikTokStreamKey.desktop <<'EOF'
-            [Desktop Entry]
-            Name=TikTok StreamKey
-            Exec=TikTok StreamKey
-            Icon=streamkey
-            Type=Application
-            Categories=Utility;
-            EOF
-            if [ -f "streamkey.png" ]; then
-              mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-              cp streamkey.png AppDir/usr/share/icons/hicolor/256x256/apps/streamkey.png
-            fi
-            ./appimagetool AppDir "TikTokStreamKey-linux-${{ github.event.inputs.version }}.AppImage"
+            mv "dist/app.dist" "dist/TikTokStreamKey-linux-${{ github.event.inputs.version }}.dist"
           else
             echo "Error: dist/app.dist not found"
             ls -la dist || true
@@ -240,7 +215,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux
-          path: TikTokStreamKey-linux-${{ github.event.inputs.version }}.AppImage
+          path: dist/TikTokStreamKey-linux-${{ github.event.inputs.version }}.dist
 
   release:
     runs-on: ubuntu-latest
