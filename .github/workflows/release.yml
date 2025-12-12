@@ -151,12 +151,15 @@ jobs:
             exit 1
           fi
 
+      - name: Zip Executable
+        run: |
+          zip -j TikTokStreamKey-macOS-${{ github.event.inputs.version }}.zip "dist/TikTokStreamKey-macOS-${{ github.event.inputs.version }}"
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: macos
-          path: |
-            dist/TikTokStreamKey-macOS-${{ github.event.inputs.version }}
+          path: TikTokStreamKey-macOS-${{ github.event.inputs.version }}.zip
 
   build_linux:
     runs-on: ubuntu-22.04
@@ -211,11 +214,15 @@ jobs:
             exit 1
           fi
 
+      - name: Zip Executable
+        run: |
+          zip -r TikTokStreamKey-linux-${{ github.event.inputs.version }}.zip "dist/TikTokStreamKey-linux-${{ github.event.inputs.version }}.dist"
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: linux
-          path: dist/TikTokStreamKey-linux-${{ github.event.inputs.version }}.dist
+          path: TikTokStreamKey-linux-${{ github.event.inputs.version }}.zip
 
   release:
     runs-on: ubuntu-latest
