@@ -3,6 +3,7 @@
 ![Version: 2.0.7](https://img.shields.io/badge/version-3.0.0-blue.svg)   ![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)
 
 > Effortlessly grab a TikTok Live stream key via your Streamlabs login, ready to use with OBS Studio — with or without 1k+ followers!
+> ⚠️ If your try like this, why not use [restream.io](https://app.restream.io/) for easy to use.
 
 ## Description
 This modern, cross-platform GUI tool lets you generate a TikTok Live Stream Key using the official Streamlabs API. It’s tailored for creators who have Streamlabs TikTok LIVE access and want an easy, all-in-one workflow with no command-line hassles.
